@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Color="Color.Primary" Elevation="4">
+        <MudText Typo="Typo.h6" Class="ml-2">Nekai Manager</MudText>
+    </MudAppBar>
+
+    <MudDrawer Open="true" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Mini">
+        <MudNavMenu>
+            <MudNavLink Href="" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.Home" />
+                <span class="ml-2">Home</span>
+            </MudNavLink>
+            <MudNavLink Href="Logs">
+                <MudIcon Icon="@Icons.Material.Filled.TableRows" />
+                <span class="ml-2">Logs</span>
+            </MudNavLink>
+            <MudNavLink Href="Settings">
+                <MudIcon Icon="@Icons.Material.Filled.Settings" />
+                <span class="ml-2">Settings</span>
+            </MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>

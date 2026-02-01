@@ -1,0 +1,75 @@
+@page "/Settings"
+@using System.Diagnostics
+@using System.Diagnostics.CodeAnalysis
+@using Microsoft.AspNetCore.Html
+@using Nekai.Common
+@using NekaiManager.Components.Components
+@using NekaiManager.Data.DTOs
+<PageTitle>Settings</PageTitle>
+
+<MudCard>
+    <MudCardHeader>
+        <MudText Typo="Typo.h5">General Settings</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <EditForm Model="@_Settings" OnValidSubmit="SaveSettings">
+            <DataAnnotationsValidator />
+
+            <MudStack Row>
+                <OpenDirectoryButton Directory="@NekaiGeneralConfiguration.Singleton.FilePath!.GetContainingDirectory()" />
+                <MudTextField ReadOnly Label="Configuration File Path" Value="NekaiGeneralConfiguration.Singleton.FilePath" />
+            </MudStack>
+            
+            <MudCheckBox @bind-Value="@_Settings.PreferDarkMode">Prefer Dark Mode</MudCheckBox>
+
+            <MudStack Row>
+                <MudButton ButtonType="ButtonType.Submit">Save</MudButton>
+                <MudButton OnClick="@_Reset">Undo</MudButton>
+            </MudStack>
+            <MudText>@_displayMessage</MudText>
+        </EditForm>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private MarkupString _displayMessage;
+    private SettingsDto _Settings { get; set; }
+
+    public SettingsPage()
+    {
+        _Reset();
+    }
+    
+    private IEnumerable<string> _Validate()
+    {
+        return [];
+    }
+
+    [MemberNotNull(nameof(_Settings))]
+    private void _Reset()
+    {
+        _Settings = new()
+        {
+            PreferDarkMode = NekaiGeneralConfiguration.Singleton.PreferDarkMode
+        };
+        _displayMessage = new();
+    }
+    
+    public void SaveSettings()
+    {
+        // Validation
+        var errors = _Validate().ToList();
+        if(errors.Any())
+        {
+            _displayMessage = new(string.Join("<br/>", errors));
+            return;
+        }
+        
+        // Save changes
+        NekaiApp.Configuration.PreferDarkMode = _Settings.PreferDarkMode;
+        var result = NekaiGeneralConfiguration.Singleton.TrySerialize();
+        _displayMessage = new(result.IsSuccessful() 
+            ? "Settings saved successfully." 
+            : $"Failed to save settings: {result.GetMessage()}.");;
+    }
+}

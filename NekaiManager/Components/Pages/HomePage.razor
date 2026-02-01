@@ -1,0 +1,38 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<MudCard Class="mx-6 my-6">
+    <MudCardContent>
+        <MudStack>
+            <MudStack Row AlignItems="AlignItems.Stretch">
+                <MudNavLink Href="/Logs">
+                    <MudPaper Elevation="3">
+                        <MudStack AlignItems="AlignItems.Center" Class="py-3">
+                            <MudIcon Icon="@Icons.Material.Filled.TableRows" Size="Size.Large"></MudIcon>
+                            <MudText>Logs</MudText>
+                        </MudStack>
+                    </MudPaper>
+                </MudNavLink>
+
+                <MudNavLink Href="/">
+                    <MudPaper Elevation="3">
+                        <MudStack AlignItems="AlignItems.Center" Class="py-3">
+                            <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Large"></MudIcon>
+                            <MudText>Home</MudText>
+                        </MudStack>
+                    </MudPaper>
+                </MudNavLink>
+
+                <MudNavLink Href="/Settings">
+                    <MudPaper Elevation="3">
+                        <MudStack AlignItems="AlignItems.Center" Class="py-3">
+                            <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Large"></MudIcon>
+                            <MudText>Settings</MudText>
+                        </MudStack>
+                    </MudPaper>
+                </MudNavLink>
+            </MudStack>
+        </MudStack>
+    </MudCardContent>
+</MudCard>
