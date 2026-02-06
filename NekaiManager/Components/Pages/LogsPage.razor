@@ -1,12 +1,12 @@
 @page "/Logs"
-@using MudBlazor.Utilities.Converter.Chain
+@using System.Diagnostics
 @using Nekai.Common
 @using NekaiManager.Components.Components
 <PageTitle>Logs</PageTitle>
 
 <MudStack Row>
     <OpenDirectoryButton Disabled="@(SelectedLogDirectory is null)" Directory="@SelectedLogDirectory?.Path" />
-    <MudSelect Disabled="@(!LogDirectories.Any())" Label="Choose a Program" T="LogDirectory" ValueChanged="x => LoadLogs(x)">
+    <MudSelect Disabled="@(!LogDirectories.Any())" Label="Choose a Program" T="LogDirectory" ValueChanged="x => LoadLogFiles(x)">
         @foreach(var directory in LogDirectories)
         {
             <MudSelectItem Value="directory">@directory.Name</MudSelectItem>
@@ -16,28 +16,33 @@
 </MudStack>
 
 <MudPaper Class="mt-4">
-    <MudDataGrid Items="Logs" AllowUnsorted Dense Hover>
+    <MudDataGrid Items="@GetLoadedLogs()" AllowUnsorted Dense Hover>
         <Header>
-            <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogs(SelectedLogDirectory))">
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
                 Refresh
             </MudIconButton>
         </Header>
             
         <PagerContent>
-            <MudDataGridPager T="NekaiLog"></MudDataGridPager>
+            <MudDataGridPager T="Log"></MudDataGridPager>
         </PagerContent>
 
         <Columns>
-            <PropertyColumn Sortable="true" Property="x => x.TimeStamp" Title="Date"/>
-            <PropertyColumn Sortable="true" Property="x => x.LogType" Title="Severity"/>
-            <PropertyColumn Property="x => x.Message" Title="Message"/>
+            <TemplateColumn>
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" OnClick="@(() => OpenLogFile(context.Item?.Path))"/>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Sortable="true" Property="x => x.Data.TimeStamp" Title="Date"/>
+            <PropertyColumn Sortable="true" Property="x => x.Data.LogType" Title="Severity"/>
+            <PropertyColumn Property="x => x.Data.Message" Title="Message"/>
         </Columns>
     </MudDataGrid>
 </MudPaper>
 
 @code {
     public LogDirectory? SelectedLogDirectory { get; set; }
-    public List<NekaiLog> Logs { get; private set; } = [];
+    public IEnumerable<LogFile> SelectedLogFiles { get; private set; } = [];
     public IEnumerable<LogDirectory> LogDirectories { get; private set; } = [];
 
     protected override async Task OnInitializedAsync()
@@ -57,21 +62,58 @@
             .Select(x => new LogDirectory(PathString.Parse(x)));
     }
     
-    public void LoadLogs(LogDirectory? path)
+    public IEnumerable<Log> GetLoadedLogs()
+    {
+        return SelectedLogFiles.SelectMany(file => file.LoadLogs());
+    }
+    
+    public void LoadLogFiles(LogDirectory? path)
     {
         SelectedLogDirectory = path;
         if(SelectedLogDirectory is null)
         {
-            Logs = [];
+            SelectedLogFiles = [];
             return;
         }
-        Logs = NekaiLogs.DeserializeAll(SelectedLogDirectory.Path, true);
+        var logFiles = SelectedLogDirectory.Path.EnumerateFiles(SearchOption.AllDirectories, "*.json");
+        var logs = logFiles
+            .Select(x => new LogFile(PathString.Parse(x)));
+        
+        SelectedLogFiles = logs;
     }
-    
+
+    public void OpenLogFile(PathString? filePath)
+    {
+        if(filePath is null)
+            return;
+        
+        _ = Process.Start(new ProcessStartInfo
+        {
+            FileName = filePath,
+            UseShellExecute = true
+        });
+    }
+
     public class LogDirectory(PathString path)
     {
         public PathString Path { get; } = path;
         public string Name { get; } = path.GetFileOrDirectoryName().ToString();
         public override string ToString() => Name;
+    }
+
+    public class LogFile(PathString path)
+    {
+        public PathString Path { get; } = path;
+        public Log[] LoadLogs()
+        {
+            var logs = NekaiLogs.Deserialize(path);
+            return logs.Select(x => new Log(path, x)).ToArray();
+        }
+    }
+
+    public class Log(PathString path, NekaiLog data)
+    {
+        public PathString Path { get; } = path;
+        public NekaiLog Data { get; } = data;
     }
 }
