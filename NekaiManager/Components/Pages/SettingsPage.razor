@@ -26,14 +26,14 @@
                 <MudButton ButtonType="ButtonType.Submit">Save</MudButton>
                 <MudButton OnClick="@_Reset">Undo</MudButton>
             </MudStack>
-            <MudText>@_displayMessage</MudText>
         </EditForm>
     </MudCardContent>
 </MudCard>
 
 @code {
-    private MarkupString _displayMessage;
-    private SettingsDto _Settings { get; set; }
+    [Inject]
+    public ISnackbar Snackbar { get; set; } = null!;
+    private SettingsDto _Settings { get; set; } = new();
 
     public SettingsPage()
     {
@@ -45,14 +45,9 @@
         return [];
     }
 
-    [MemberNotNull(nameof(_Settings))]
     private void _Reset()
     {
-        _Settings = new()
-        {
-            PreferDarkMode = NekaiGeneralConfiguration.Singleton.PreferDarkMode
-        };
-        _displayMessage = new();
+        _Settings.PreferDarkMode = NekaiGeneralConfiguration.Singleton.PreferDarkMode;
     }
     
     public void SaveSettings()
@@ -61,15 +56,21 @@
         var errors = _Validate().ToList();
         if(errors.Any())
         {
-            _displayMessage = new(string.Join("<br/>", errors));
+            string errorMessage = string.Join("\n", errors);
+            Snackbar.Add(errorMessage, Severity.Error);
             return;
         }
         
         // Save changes
         NekaiApp.Configuration.PreferDarkMode = _Settings.PreferDarkMode;
         var result = NekaiGeneralConfiguration.Singleton.TrySerialize();
-        _displayMessage = new(result.IsSuccessful() 
-            ? "Settings saved successfully." 
-            : $"Failed to save settings: {result.GetMessage()}.");;
+        if(result.IsSuccessful())
+        {
+            Snackbar.Add("Settings saved successfully.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Failed to save settings: {result.GetMessage()}.", Severity.Error);
+        }
     }
 }

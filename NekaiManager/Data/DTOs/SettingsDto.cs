@@ -4,5 +4,5 @@ namespace NekaiManager.Data.DTOs;
 
 public class SettingsDto
 {
-	public required bool PreferDarkMode { get; set; }
+	public bool PreferDarkMode { get; set; }
 }
