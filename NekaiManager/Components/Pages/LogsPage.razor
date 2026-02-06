@@ -4,11 +4,11 @@
 <PageTitle>Logs</PageTitle>
 
 <MudStack Row>
-    <OpenDirectoryButton Disabled="@(SelectedLogDirectory is null)" Directory="@SelectedLogDirectory" />
-    <MudSelect Label="Choose a Program" T="PathString" ValueChanged="x => LoadLogs(x)">
-        @foreach(var path in LogDirectories)
+    <OpenDirectoryButton Disabled="@(SelectedLogDirectory is null)" Directory="@SelectedLogDirectory?.Path" />
+    <MudSelect Disabled="@(!LogDirectories.Any())" Label="Choose a Program" T="LogDirectory" ValueChanged="x => LoadLogs(x)">
+        @foreach(var directory in LogDirectories)
         {
-            <MudSelectItem T="PathString" Value="path">@path.GetFileOrDirectoryName().ToString()</MudSelectItem>
+            <MudSelectItem Value="directory">@directory.Name</MudSelectItem>
         }
     </MudSelect>
 </MudStack>
@@ -26,12 +26,23 @@
 </MudDataGrid>
 
 @code {
-    public PathString? SelectedLogDirectory { get; set; }
+    public LogDirectory? SelectedLogDirectory { get; set; }
     public List<NekaiLog> Logs { get; private set; } = [];
-    public static IEnumerable<PathString> LogDirectories => NekaiData.Directories.Logs.EnumerateDirectories(SearchOption.AllDirectories).Select(x => PathString.Parse(x));
+    public IEnumerable<LogDirectory> LogDirectories { get; private set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        LogDirectories = EnumerateLogDirectories();
+    }
+
+    public static IEnumerable<LogDirectory> EnumerateLogDirectories()
+    {
+        return NekaiData.Directories.Logs
+            .EnumerateDirectories(SearchOption.AllDirectories)
+            .Select(x => new LogDirectory(PathString.Parse(x)));
+    }
     
-    
-    public void LoadLogs(PathString? path)
+    public void LoadLogs(LogDirectory path)
     {
         SelectedLogDirectory = path;
         if(SelectedLogDirectory is null)
@@ -39,6 +50,12 @@
             Logs = [];
             return;
         }
-        Logs = NekaiLogs.DeserializeAll(SelectedLogDirectory, true);
+        Logs = NekaiLogs.DeserializeAll(SelectedLogDirectory.Path, true);
+    }
+    
+    public class LogDirectory(PathString path)
+    {
+        public PathString Path { get; } = path;
+        public string Name { get; } = path.GetFileOrDirectoryName().ToString();
     }
 }
