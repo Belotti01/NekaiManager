@@ -1,4 +1,5 @@
 @page "/Logs"
+@using MudBlazor.Utilities.Converter.Chain
 @using Nekai.Common
 @using NekaiManager.Components.Components
 <PageTitle>Logs</PageTitle>
@@ -11,19 +12,28 @@
             <MudSelectItem Value="directory">@directory.Name</MudSelectItem>
         }
     </MudSelect>
+    <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="@RefreshLogDirectories" />
 </MudStack>
 
-<MudDataGrid Items="Logs" AllowUnsorted Dense Hover>
-    <PagerContent>
-        <MudDataGridPager T="NekaiLog"></MudDataGridPager>
-    </PagerContent>
-    
-    <Columns>
-        <PropertyColumn Sortable="true" Property="x => x.TimeStamp" Title="Date"/>
-        <PropertyColumn Sortable="true" Property="x => x.LogType" Title="Severity"/>
-        <PropertyColumn Property="x => x.Message" Title="Message"/>
-    </Columns>
-</MudDataGrid>
+<MudPaper Class="mt-4">
+    <MudDataGrid Items="Logs" AllowUnsorted Dense Hover>
+        <Header>
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogs(SelectedLogDirectory))">
+                Refresh
+            </MudIconButton>
+        </Header>
+            
+        <PagerContent>
+            <MudDataGridPager T="NekaiLog"></MudDataGridPager>
+        </PagerContent>
+
+        <Columns>
+            <PropertyColumn Sortable="true" Property="x => x.TimeStamp" Title="Date"/>
+            <PropertyColumn Sortable="true" Property="x => x.LogType" Title="Severity"/>
+            <PropertyColumn Property="x => x.Message" Title="Message"/>
+        </Columns>
+    </MudDataGrid>
+</MudPaper>
 
 @code {
     public LogDirectory? SelectedLogDirectory { get; set; }
@@ -31,6 +41,11 @@
     public IEnumerable<LogDirectory> LogDirectories { get; private set; } = [];
 
     protected override async Task OnInitializedAsync()
+    {
+        RefreshLogDirectories();
+    }
+    
+    public void RefreshLogDirectories()
     {
         LogDirectories = EnumerateLogDirectories();
     }
@@ -42,7 +57,7 @@
             .Select(x => new LogDirectory(PathString.Parse(x)));
     }
     
-    public void LoadLogs(LogDirectory path)
+    public void LoadLogs(LogDirectory? path)
     {
         SelectedLogDirectory = path;
         if(SelectedLogDirectory is null)
@@ -57,5 +72,6 @@
     {
         public PathString Path { get; } = path;
         public string Name { get; } = path.GetFileOrDirectoryName().ToString();
+        public override string ToString() => Name;
     }
 }
