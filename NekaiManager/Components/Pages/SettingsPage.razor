@@ -1,7 +1,4 @@
 @page "/Settings"
-@using System.Diagnostics
-@using System.Diagnostics.CodeAnalysis
-@using Microsoft.AspNetCore.Html
 @using Nekai.Common
 @using NekaiManager.Components.Components
 @using NekaiManager.Data.DTOs
@@ -33,7 +30,7 @@
 @code {
     [Inject]
     public ISnackbar Snackbar { get; set; } = null!;
-    private SettingsDto _Settings { get; set; } = new();
+    private SettingsDto _Settings { get; } = new();
 
     public SettingsPage()
     {

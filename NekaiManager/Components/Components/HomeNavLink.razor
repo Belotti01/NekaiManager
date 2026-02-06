@@ -1,0 +1,17 @@
+<MudNavLink Href="@Href">
+    <MudPaper Elevation="3">
+        <MudStack AlignItems="AlignItems.Center" Class="py-3">
+            <MudIcon Icon="@Icon" Size="Size.Large"></MudIcon>
+            <MudText>@ChildContent</MudText>
+        </MudStack>
+    </MudPaper>
+</MudNavLink>
+
+@code {
+    [Parameter]
+    public string Href { get; set; } = "";
+    [Parameter]
+    public string Icon { get; set; } = "";
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}
