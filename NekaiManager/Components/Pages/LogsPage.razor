@@ -16,12 +16,15 @@
 </MudStack>
 
 <MudPaper Class="mt-4">
-    <MudDataGrid Items="@GetLoadedLogs()" AllowUnsorted Dense Hover ColumnResizeMode="ResizeMode.Column">
-        <Header>
-            <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
-                Refresh
-            </MudIconButton>
-        </Header>
+    <MudDataGrid Groupable Items="@GetLoadedLogs()" AllowUnsorted Dense Hover ColumnResizeMode="ResizeMode.Column">
+        <ToolBarContent>
+            <MudStack Row>
+                <MudButton StartIcon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
+                    Refresh
+                </MudButton>
+                <MudCheckBox @bind-Value="@ShowMachineName">Show Machine Name</MudCheckBox>
+            </MudStack>
+        </ToolBarContent>
             
         <PagerContent>
             <MudDataGridPager T="Log"></MudDataGridPager>
@@ -33,6 +36,10 @@
                     <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" OnClick="@(() => OpenLogFile(context.Item?.Path))"/>
                 </CellTemplate>
             </TemplateColumn>
+            @if(ShowMachineName)
+            {
+                <PropertyColumn Sortable="true" Property="x => x.Data.MachineName" Title="Machine Name"/>
+            }
             <PropertyColumn Sortable="true" Property="x => x.Data.TimeStamp" Title="Date"/>
             <PropertyColumn Sortable="true" Property="x => x.Data.LogType" Title="Severity"/>
             <PropertyColumn Property="x => x.Data.Message" Title="Message"/>
@@ -41,6 +48,7 @@
 </MudPaper>
 
 @code {
+    public bool ShowMachineName { get; set; } = false;
     public LogDirectory? SelectedLogDirectory { get; set; }
     public IEnumerable<LogFile> SelectedLogFiles { get; private set; } = [];
     public IEnumerable<LogDirectory> LogDirectories { get; private set; } = [];
