@@ -18,8 +18,7 @@
                 </MudStack>
                 
                 <MudStack Row>
-                    <MudText>Language:</MudText>
-                    <MudSelect Text="Language" @bind-Value="@_Settings.PreferredLanguage">
+                    <MudSelect Label="Language" @bind-Value="@_Settings.PreferredLanguage">
                         @foreach(var language in Enum.GetValues<DisplayLanguage>())
                         {
                             <MudSelectItem Value="language">@language</MudSelectItem>
@@ -35,6 +34,14 @@
                 </MudStack>
             </MudStack>
         </EditForm>
+    </MudCardContent>
+</MudCard>
+
+<MudCard Class="mt-2">
+    <MudCardContent>
+        <MudStack Row>
+            <MudButton OnClick="ClearCache" StartIcon="@Icons.Material.Filled.Delete">Clear Cache (@(GetCacheSizeMb())MB)</MudButton>
+        </MudStack>
     </MudCardContent>
 </MudCard>
 
@@ -87,6 +94,42 @@
         else
         {
             Snackbar.Add($"Failed to save settings: {result.GetMessage()}.", Severity.Error);
+        }
+    }
+
+    public long GetCacheSizeMb()
+    {
+        var cacheDirectory = NekaiData.Directories.Temp;
+        if(!cacheDirectory.IsExistingDirectory())
+        {
+            return 0;
+        }
+        
+        var cacheFiles = cacheDirectory.EnumerateFiles(SearchOption.AllDirectories);
+        long totalSize = cacheFiles.Sum(x => new FileInfo(x).Length);
+        return totalSize / 1024 / 1024; // Return size in MB
+    }
+
+    public void ClearCache()
+    {
+        var cacheDirectory = NekaiData.Directories.Temp;
+        bool isCacheEmpty = !cacheDirectory.IsExistingDirectory() 
+                         || !cacheDirectory.EnumerateFiles(SearchOption.AllDirectories).Any();
+        if(isCacheEmpty)
+        {
+            Snackbar.Add("Cache is empty.", Severity.Info);
+            return;
+        }
+
+        var result = NekaiData.ClearOldTempFiles();
+        if(result.IsSuccessful)
+        {
+            Snackbar.Add($"{result.Value} files deleted successfully.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add($"Failed to clear cache: {result.Error.GetMessage()}", Severity.Warning);
+            NekaiLogs.Program.Warning("Failed to clear cache: {error}.", result.Error.GetMessage());
         }
     }
 }
