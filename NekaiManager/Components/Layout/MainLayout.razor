@@ -1,6 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using Nekai.Common
+@inherits LayoutComponentBase
 
-<MudThemeProvider IsDarkMode="true" />
+<MudThemeProvider IsDarkMode="@IsDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -31,3 +32,9 @@
         @Body
     </MudMainContent>
 </MudLayout>
+
+@code {
+
+    public static bool IsDarkMode => NekaiGeneralConfiguration.Singleton.PreferDarkMode;
+
+}
