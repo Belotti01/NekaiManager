@@ -18,19 +18,16 @@
 <MudPaper Class="mt-4">
     <MudDataGrid @Loading="@Loading" Groupable Items="@LoadedLogs" AllowUnsorted Dense Hover ColumnResizeMode="ResizeMode.Column">
         <ToolBarContent>
-            <MudStack Row>
-                <MudButton StartIcon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
-                    Refresh
-                </MudButton>
-                <MudSelect T="LogLevel" FullWidth ValueChanged="@_UpdateMinimumLogLevel" Label="Minimum Log Level">
-                    @foreach(var logLevel in Enum.GetValues<LogLevel>())
-                    {
-                        <MudSelectItem Value="logLevel">@logLevel</MudSelectItem>
-                    }
-                </MudSelect>
-                <MudSpacer />
-                <MudCheckBox @bind-Value="@ShowMachineName">Show Machine Name</MudCheckBox>
-            </MudStack>
+            <MudButton StartIcon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
+                Refresh
+            </MudButton>
+            <MudSelect Class="mx-10" T="LogLevel" ValueChanged="@_UpdateMinimumLogLevel" Label="Minimum Log Level">
+                @foreach(var logLevel in Enum.GetValues<LogLevel>())
+                {
+                    <MudSelectItem Value="logLevel">@logLevel</MudSelectItem>
+                }
+            </MudSelect>
+            <MudCheckBox @bind-Value="@ShowMachineName">Show Machine Name</MudCheckBox>
         </ToolBarContent>
             
         <PagerContent>
