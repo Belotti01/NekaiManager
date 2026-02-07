@@ -17,6 +17,16 @@
                 <MudTextField ReadOnly Label="Configuration File Path" Value="NekaiGeneralConfiguration.Singleton.FilePath" />
             </MudStack>
             
+            <MudStack Row>
+                <MudText>Language:</MudText>
+                <MudSelect Text="Language" @bind-Value="@_Settings.PreferredLanguage">
+                    @foreach(var language in Enum.GetValues<DisplayLanguage>())
+                    {
+                        <MudSelectItem Value="language">@language</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudStack>
+            
             <MudCheckBox @bind-Value="@_Settings.PreferDarkMode">Prefer Dark Mode</MudCheckBox>
 
             <MudStack Row>
@@ -45,6 +55,7 @@
     private void _Reset()
     {
         _Settings.PreferDarkMode = NekaiGeneralConfiguration.Singleton.PreferDarkMode;
+        _Settings.PreferredLanguage = NekaiGeneralConfiguration.Singleton.DefaultLanguage;
     }
     
     public void SaveSettings()
@@ -60,6 +71,9 @@
         
         // Save changes
         NekaiApp.Configuration.PreferDarkMode = _Settings.PreferDarkMode;
+        NekaiApp.Configuration.DefaultLanguage = _Settings.PreferredLanguage;
+        
+        // Serialize
         var result = NekaiGeneralConfiguration.Singleton.TrySerialize();
         if(result.IsSuccessful())
         {
