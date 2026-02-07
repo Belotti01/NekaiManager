@@ -16,7 +16,7 @@
 </MudStack>
 
 <MudPaper Class="mt-4">
-    <MudDataGrid Groupable Items="@GetLoadedLogs()" AllowUnsorted Dense Hover ColumnResizeMode="ResizeMode.Column">
+    <MudDataGrid @Loading="@Loading" Groupable Items="@GetLoadedLogs()" AllowUnsorted Dense Hover ColumnResizeMode="ResizeMode.Column">
         <ToolBarContent>
             <MudStack Row>
                 <MudButton StartIcon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
@@ -52,6 +52,7 @@
     public LogDirectory? SelectedLogDirectory { get; set; }
     public IEnumerable<LogFile> SelectedLogFiles { get; private set; } = [];
     public IEnumerable<LogDirectory> LogDirectories { get; private set; } = [];
+    public bool Loading { get; private set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,7 +75,10 @@
     
     public IEnumerable<Log> GetLoadedLogs()
     {
-        return SelectedLogFiles.SelectMany(file => file.LoadLogs());
+        Loading = true;
+        var logs = SelectedLogFiles.SelectMany(file => file.LoadLogs());
+        Loading = false;
+        return logs;
     }
     
     public void LoadLogFiles(LogDirectory? path)
