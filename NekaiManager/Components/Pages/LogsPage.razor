@@ -16,7 +16,7 @@
 </MudStack>
 
 <MudPaper Class="mt-4">
-    <MudDataGrid Items="@GetLoadedLogs()" AllowUnsorted Dense Hover>
+    <MudDataGrid Items="@GetLoadedLogs()" AllowUnsorted Dense Hover ColumnResizeMode="ResizeMode.Column">
         <Header>
             <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
                 Refresh
@@ -106,8 +106,8 @@
         public PathString Path { get; } = path;
         public Log[] LoadLogs()
         {
-            var logs = NekaiLogs.Deserialize(path);
-            return logs.Select(x => new Log(path, x)).ToArray();
+            var logs = NekaiLogs.Deserialize(Path);
+            return logs.Select(x => new Log(Path, x)).ToArray();
         }
     }
 
