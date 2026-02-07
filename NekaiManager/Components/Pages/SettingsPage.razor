@@ -40,7 +40,9 @@
 <MudCard Class="mt-2">
     <MudCardContent>
         <MudStack Row>
-            <MudButton OnClick="ClearCache" StartIcon="@Icons.Material.Filled.Delete">Clear Cache (@(GetCacheSizeMb())MB)</MudButton>
+            <MudButton OnClick="@ClearCache" StartIcon="@Icons.Material.Filled.Delete">
+                Clear Cache (@(GetCacheSizeMb())MB)
+            </MudButton>
         </MudStack>
     </MudCardContent>
 </MudCard>
@@ -97,7 +99,7 @@
         }
     }
 
-    public long GetCacheSizeMb()
+    public static long GetCacheSizeMb()
     {
         var cacheDirectory = NekaiData.Directories.Temp;
         if(!cacheDirectory.IsExistingDirectory())

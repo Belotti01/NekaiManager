@@ -6,7 +6,7 @@
 
 <MudStack Row>
     <OpenDirectoryButton Disabled="@(SelectedLogDirectory is null)" Directory="@SelectedLogDirectory?.Path" />
-    <MudSelect Disabled="@(!LogDirectories.Any())" Label="Choose a Program" T="LogDirectory" ValueChanged="x => LoadLogFiles(x)">
+    <MudSelect Disabled="@(!LogDirectories.Any())" Label="Choose a Program" T="LogDirectory" ValueChanged="@LoadLogFiles">
         @foreach(var directory in LogDirectories)
         {
             <MudSelectItem Value="directory">@directory.Name</MudSelectItem>
@@ -22,7 +22,7 @@
                 <MudButton StartIcon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
                     Refresh
                 </MudButton>
-                <MudSelect T="LogLevel" FullWidth ValueChanged="@UpdateMinimumLogLevel" Label="Minimum Log Level">
+                <MudSelect T="LogLevel" FullWidth ValueChanged="@_UpdateMinimumLogLevel" Label="Minimum Log Level">
                     @foreach(var logLevel in Enum.GetValues<LogLevel>())
                     {
                         <MudSelectItem Value="logLevel">@logLevel</MudSelectItem>
@@ -125,7 +125,7 @@
         });
     }
 
-    private void UpdateMinimumLogLevel(LogLevel toLogLevel)
+    private void _UpdateMinimumLogLevel(LogLevel toLogLevel)
     {
         if(MinimumLogLevel == toLogLevel)
             return;
