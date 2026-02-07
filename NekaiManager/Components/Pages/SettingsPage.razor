@@ -70,6 +70,10 @@
         }
         
         // Save changes
+        if(_Settings.PreferDarkMode != NekaiGeneralConfiguration.Singleton.PreferDarkMode)
+        {
+            Snackbar.Add("Reload the page to apply light/dark mode.", Severity.Info);
+        }
         NekaiApp.Configuration.PreferDarkMode = _Settings.PreferDarkMode;
         NekaiApp.Configuration.DefaultLanguage = _Settings.PreferredLanguage;
         
