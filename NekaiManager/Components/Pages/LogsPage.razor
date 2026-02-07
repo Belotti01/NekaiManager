@@ -16,12 +16,19 @@
 </MudStack>
 
 <MudPaper Class="mt-4">
-    <MudDataGrid @Loading="@Loading" Groupable Items="@GetLoadedLogs()" AllowUnsorted Dense Hover ColumnResizeMode="ResizeMode.Column">
+    <MudDataGrid @Loading="@Loading" Groupable Items="@LoadedLogs" AllowUnsorted Dense Hover ColumnResizeMode="ResizeMode.Column">
         <ToolBarContent>
             <MudStack Row>
                 <MudButton StartIcon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
                     Refresh
                 </MudButton>
+                <MudSelect T="LogLevel" FullWidth ValueChanged="@UpdateMinimumLogLevel" Label="Minimum Log Level">
+                    @foreach(var logLevel in Enum.GetValues<LogLevel>())
+                    {
+                        <MudSelectItem Value="logLevel">@logLevel</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudSpacer />
                 <MudCheckBox @bind-Value="@ShowMachineName">Show Machine Name</MudCheckBox>
             </MudStack>
         </ToolBarContent>
@@ -48,8 +55,10 @@
 </MudPaper>
 
 @code {
+    public LogLevel MinimumLogLevel { get; set; } = LogLevel.Information;
     public bool ShowMachineName { get; set; } = false;
     public LogDirectory? SelectedLogDirectory { get; set; }
+    public IEnumerable<Log> LoadedLogs { get; private set; } = [];
     public IEnumerable<LogFile> SelectedLogFiles { get; private set; } = [];
     public IEnumerable<LogDirectory> LogDirectories { get; private set; } = [];
     public bool Loading { get; private set; } = false;
@@ -75,10 +84,17 @@
     
     public IEnumerable<Log> GetLoadedLogs()
     {
-        Loading = true;
-        var logs = SelectedLogFiles.SelectMany(file => file.LoadLogs());
-        Loading = false;
+        var logs = SelectedLogFiles
+            .SelectMany(file => file.LoadLogs())
+            .Where(x => x.Data.LogType >= MinimumLogLevel);
         return logs;
+    }
+
+    public void UpdateLoadedLogs()
+    {
+        Loading = true;
+        LoadedLogs = GetLoadedLogs().ToList();
+        Loading = false;
     }
     
     public void LoadLogFiles(LogDirectory? path)
@@ -94,6 +110,7 @@
             .Select(x => new LogFile(PathString.Parse(x)));
         
         SelectedLogFiles = logs;
+        UpdateLoadedLogs();
     }
 
     public void OpenLogFile(PathString? filePath)
@@ -106,6 +123,15 @@
             FileName = filePath,
             UseShellExecute = true
         });
+    }
+
+    private void UpdateMinimumLogLevel(LogLevel toLogLevel)
+    {
+        if(MinimumLogLevel == toLogLevel)
+            return;
+        
+        MinimumLogLevel = toLogLevel;
+        UpdateLoadedLogs();
     }
 
     public class LogDirectory(PathString path)
