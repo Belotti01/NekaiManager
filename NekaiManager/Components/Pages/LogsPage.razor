@@ -59,6 +59,8 @@
     {
         return NekaiData.Directories.Logs
             .EnumerateDirectories(SearchOption.AllDirectories)
+            // Exclude empty directories.
+            .Where(x => Directory.EnumerateFiles(x, "*.json", SearchOption.AllDirectories).Any())
             .Select(x => new LogDirectory(PathString.Parse(x)));
     }
     
