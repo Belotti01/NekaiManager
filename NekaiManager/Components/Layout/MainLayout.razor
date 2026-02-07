@@ -8,10 +8,11 @@
 
 <MudLayout>
     <MudAppBar Color="Color.Primary" Elevation="4">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" OnClick="@ToggleMenu"/>
         <MudText Typo="Typo.h6" Class="ml-2">Nekai Manager</MudText>
     </MudAppBar>
 
-    <MudDrawer Open="true" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Mini">
+    <MudDrawer @bind-Open="@IsMenuOpen">
         <MudNavMenu>
             <MudNavLink Href="" Match="NavLinkMatch.All">
                 <MudIcon Icon="@Icons.Material.Filled.Home" />
@@ -34,7 +35,11 @@
 </MudLayout>
 
 @code {
-
+    public bool IsMenuOpen { get; set; } = true;
     public static bool IsDarkMode => NekaiGeneralConfiguration.Singleton.PreferDarkMode;
 
+    public void ToggleMenu()
+    {
+        IsMenuOpen = !IsMenuOpen;
+    }
 }

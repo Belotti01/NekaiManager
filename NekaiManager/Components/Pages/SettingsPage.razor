@@ -11,27 +11,28 @@
     <MudCardContent>
         <EditForm Model="@_Settings" OnValidSubmit="SaveSettings">
             <DataAnnotationsValidator />
+            <MudStack>
+                <MudStack Row>
+                    <OpenDirectoryButton Directory="@NekaiGeneralConfiguration.Singleton.FilePath!.GetContainingDirectory()" />
+                    <MudTextField ReadOnly Label="Configuration File Path" Value="NekaiGeneralConfiguration.Singleton.FilePath" />
+                </MudStack>
+                
+                <MudStack Row>
+                    <MudText>Language:</MudText>
+                    <MudSelect Text="Language" @bind-Value="@_Settings.PreferredLanguage">
+                        @foreach(var language in Enum.GetValues<DisplayLanguage>())
+                        {
+                            <MudSelectItem Value="language">@language</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudStack>
+                
+                <MudCheckBox @bind-Value="@_Settings.PreferDarkMode">Prefer Dark Mode</MudCheckBox>
 
-            <MudStack Row>
-                <OpenDirectoryButton Directory="@NekaiGeneralConfiguration.Singleton.FilePath!.GetContainingDirectory()" />
-                <MudTextField ReadOnly Label="Configuration File Path" Value="NekaiGeneralConfiguration.Singleton.FilePath" />
-            </MudStack>
-            
-            <MudStack Row>
-                <MudText>Language:</MudText>
-                <MudSelect Text="Language" @bind-Value="@_Settings.PreferredLanguage">
-                    @foreach(var language in Enum.GetValues<DisplayLanguage>())
-                    {
-                        <MudSelectItem Value="language">@language</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudStack>
-            
-            <MudCheckBox @bind-Value="@_Settings.PreferDarkMode">Prefer Dark Mode</MudCheckBox>
-
-            <MudStack Row>
-                <MudButton ButtonType="ButtonType.Submit">Save</MudButton>
-                <MudButton OnClick="@_Reset">Undo</MudButton>
+                <MudStack Row>
+                    <MudButton ButtonType="ButtonType.Submit">Save</MudButton>
+                    <MudButton OnClick="@_Reset">Undo</MudButton>
+                </MudStack>
             </MudStack>
         </EditForm>
     </MudCardContent>
