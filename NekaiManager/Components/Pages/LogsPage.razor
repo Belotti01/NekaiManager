@@ -27,6 +27,7 @@
                     <MudSelectItem Value="logLevel">@logLevel</MudSelectItem>
                 }
             </MudSelect>
+            <MudCheckBox @bind-Value="@ShowProgram">Show Program Name</MudCheckBox>
             <MudCheckBox @bind-Value="@ShowMachineName">Show Machine Name</MudCheckBox>
         </ToolBarContent>
             
@@ -40,12 +41,16 @@
                     <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" OnClick="@(() => context.Item?.File.Open())" />
                 </CellTemplate>
             </TemplateColumn>
+            @if(ShowProgram)
+            {
+                <PropertyColumn Property="x => x.File.Directory.Name" Title="Program"/>
+            }
             @if(ShowMachineName)
             {
-                <PropertyColumn Sortable="true" Property="x => x.Data.MachineName" Title="Machine Name"/>
+                <PropertyColumn Property="x => x.Data.MachineName" Title="Machine Name"/>
             }
-            <PropertyColumn Sortable="true" Property="x => x.Data.TimeStamp" Title="Date"/>
-            <PropertyColumn Sortable="true" Property="x => x.Data.LogType" Title="Severity"/>
+            <PropertyColumn Property="x => x.Data.TimeStamp" Title="Date"/>
+            <PropertyColumn Property="x => x.Data.LogType" Title="Severity"/>
             <PropertyColumn Property="x => x.Data.Message" Title="Message"/>
         </Columns>
     </MudDataGrid>
@@ -54,6 +59,7 @@
 @code {
     public LogLevel MinimumLogLevel { get; set; } = LogLevel.Information;
     public bool ShowMachineName { get; set; } = false;
+    public bool ShowProgram { get; set; } = false;
     public LogDirectory? SelectedLogDirectory { get; set; }
     public IEnumerable<Log> LoadedLogs { get; private set; } = [];
     public IEnumerable<LogDirectory> LogDirectories { get; private set; } = [];
@@ -108,9 +114,10 @@
         public override string ToString() => Name;
     }
 
-    public class LogFile(PathString path)
+    public class LogFile(PathString filePath)
     {
-        public PathString Path { get; } = path;
+        public LogDirectory Directory { get; } = new(filePath.GetContainingDirectory());
+        public PathString Path { get; } = filePath;
         
         public Log[] LoadLogs()
         {
