@@ -6,7 +6,7 @@
 
 <MudStack Row>
     <OpenDirectoryButton Disabled="@(SelectedLogDirectory is null)" Directory="@SelectedLogDirectory?.Path" />
-    <MudSelect Disabled="@(!LogDirectories.Any())" Label="Choose a Program" T="LogDirectory" ValueChanged="@LoadLogFiles">
+    <MudSelect Disabled="@(!LogDirectories.Any())" Label="Choose a Program" T="LogDirectory" ValueChanged="@LoadLogs">
         @foreach(var directory in LogDirectories)
         {
             <MudSelectItem Value="directory">@directory.Name</MudSelectItem>
@@ -18,7 +18,7 @@
 <MudPaper Class="mt-4">
     <MudDataGrid @Loading="@Loading" Groupable Items="@LoadedLogs" AllowUnsorted Dense Hover ColumnResizeMode="ResizeMode.Column">
         <ToolBarContent>
-            <MudButton StartIcon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogFiles(SelectedLogDirectory))">
+            <MudButton StartIcon="@Icons.Material.Filled.Refresh" OnClick="@(() => LoadLogs(SelectedLogDirectory))">
                 Refresh
             </MudButton>
             <MudSelect Class="mx-10" T="LogLevel" ValueChanged="@_UpdateMinimumLogLevel" Label="Minimum Log Level">
@@ -37,7 +37,7 @@
         <Columns>
             <TemplateColumn>
                 <CellTemplate>
-                    <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" OnClick="@(() => OpenLogFile(context.Item?.Path))"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" OnClick="@(() => context.Item?.File.Open())" />
                 </CellTemplate>
             </TemplateColumn>
             @if(ShowMachineName)
@@ -56,7 +56,6 @@
     public bool ShowMachineName { get; set; } = false;
     public LogDirectory? SelectedLogDirectory { get; set; }
     public IEnumerable<Log> LoadedLogs { get; private set; } = [];
-    public IEnumerable<LogFile> SelectedLogFiles { get; private set; } = [];
     public IEnumerable<LogDirectory> LogDirectories { get; private set; } = [];
     public bool Loading { get; private set; } = false;
 
@@ -67,59 +66,30 @@
     
     public void RefreshLogDirectories()
     {
-        LogDirectories = EnumerateLogDirectories();
-    }
-
-    public static IEnumerable<LogDirectory> EnumerateLogDirectories()
-    {
-        return NekaiData.Directories.Logs
+        LogDirectories = NekaiData.Directories.Logs
             .EnumerateDirectories(SearchOption.AllDirectories)
             // Exclude empty directories.
             .Where(x => Directory.EnumerateFiles(x, "*.json", SearchOption.AllDirectories).Any())
             .Select(x => new LogDirectory(PathString.Parse(x)));
     }
-    
-    public IEnumerable<Log> GetLoadedLogs()
-    {
-        var logs = SelectedLogFiles
-            .SelectMany(file => file.LoadLogs())
-            .Where(x => x.Data.LogType >= MinimumLogLevel);
-        return logs;
-    }
 
-    public void UpdateLoadedLogs()
-    {
-        Loading = true;
-        LoadedLogs = GetLoadedLogs().ToList();
-        Loading = false;
-    }
-    
-    public void LoadLogFiles(LogDirectory? path)
+    public void LoadLogs(LogDirectory? path)
     {
         SelectedLogDirectory = path;
         if(SelectedLogDirectory is null)
-        {
-            SelectedLogFiles = [];
             return;
-        }
-        var logFiles = SelectedLogDirectory.Path.EnumerateFiles(SearchOption.AllDirectories, "*.json");
-        var logs = logFiles
+        
+        Loading = true;
+        // Enumerate files.
+        var logFiles = SelectedLogDirectory.Path
+            .EnumerateFiles(SearchOption.AllDirectories, "*.json")
             .Select(x => new LogFile(PathString.Parse(x)));
-        
-        SelectedLogFiles = logs;
-        UpdateLoadedLogs();
-    }
 
-    public void OpenLogFile(PathString? filePath)
-    {
-        if(filePath is null)
-            return;
-        
-        _ = Process.Start(new ProcessStartInfo
-        {
-            FileName = filePath,
-            UseShellExecute = true
-        });
+        // Load logs from files and filter by log level.
+        LoadedLogs = logFiles
+            .SelectMany(file => file.LoadLogs())
+            .Where(x => x.Data.LogType >= MinimumLogLevel);
+        Loading = false;
     }
 
     private void _UpdateMinimumLogLevel(LogLevel toLogLevel)
@@ -128,7 +98,7 @@
             return;
         
         MinimumLogLevel = toLogLevel;
-        UpdateLoadedLogs();
+        LoadLogs(SelectedLogDirectory);
     }
 
     public class LogDirectory(PathString path)
@@ -141,16 +111,26 @@
     public class LogFile(PathString path)
     {
         public PathString Path { get; } = path;
+        
         public Log[] LoadLogs()
         {
             var logs = NekaiLogs.Deserialize(Path);
-            return logs.Select(x => new Log(Path, x)).ToArray();
+            return logs.Select(x => new Log(this, x)).ToArray();
+        }
+
+        public Process? Open()
+        {
+            return Process.Start(new ProcessStartInfo
+            {
+                FileName = Path,
+                UseShellExecute = true
+            });
         }
     }
 
-    public class Log(PathString path, NekaiLog data)
+    public class Log(LogFile file, NekaiLog data)
     {
-        public PathString Path { get; } = path;
+        public LogFile File { get; } = file;
         public NekaiLog Data { get; } = data;
     }
 }
